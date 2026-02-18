@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-phil_db}
+      POSTGRES_USER: ${POSTGRES_USER:-phil_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Phil2026SecurePass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - phil-network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - phil-network
+
+  backend:
+    build: .
+    command: gunicorn phil.wsgi:application --bind 0.0.0.0:8000 --workers 4
+    volumes:
+      - /opt/phil-backend/staticfiles:/app/staticfiles
+      - /opt/phil-backend/media:/app/media
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    networks:
+      - phil-network
+
+  celery:
+    build: .
+    command: celery -A phil worker -l info
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    networks:
+      - phil-network
+
+volumes:
+  postgres_data:
+
+networks:
+  phil-network:
+    driver: bridge

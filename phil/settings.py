@@ -237,3 +237,9 @@ LOGGING = {
 # Custom settings
 ENABLE_URL_CHECK_TASK = os.getenv('ENABLE_URL_CHECK_TASK', 'False') == 'True'
 URL_CHECK_INTERVAL_HOURS = int(os.getenv('URL_CHECK_INTERVAL_HOURS', '24'))
+
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000').split(',')
+
+# Proxy SSL Header
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
