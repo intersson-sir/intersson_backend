@@ -136,15 +136,20 @@ class DashboardStatsView(APIView):
     def get(self, request):
         period_key, days = parse_period(request.query_params.get('period'))
         cache_key = f'dashboard_stats_{period_key}'
-        cached_data = cache.get(cache_key)
-
-        if cached_data:
-            logger.info("Returning cached dashboard stats for period=%s", period_key)
-            return Response(cached_data)
+        try:
+            cached_data = cache.get(cache_key)
+            if cached_data:
+                logger.info("Returning cached dashboard stats for period=%s", period_key)
+                return Response(cached_data)
+        except Exception as e:
+            logger.warning("Cache get failed for dashboard stats, computing: %s", e)
 
         logger.info("Calculating dashboard stats for period=%s", period_key)
         response_data = build_dashboard_stats(period_key, days)
-        cache.set(cache_key, response_data, 300)
+        try:
+            cache.set(cache_key, response_data, 300)
+        except Exception as e:
+            logger.warning("Cache set failed for dashboard stats: %s", e)
         logger.info("Dashboard stats calculated successfully")
         return Response(response_data)
 
@@ -195,13 +200,18 @@ class PlatformStatsView(APIView):
 
         period_key, days = parse_period(request.query_params.get('period'))
         cache_key = f'platform_stats_{platform}_{period_key}'
-        cached_data = cache.get(cache_key)
-
-        if cached_data:
-            logger.info("Returning cached stats for platform=%s period=%s", platform, period_key)
-            return Response(cached_data)
+        try:
+            cached_data = cache.get(cache_key)
+            if cached_data:
+                logger.info("Returning cached stats for platform=%s period=%s", platform, period_key)
+                return Response(cached_data)
+        except Exception as e:
+            logger.warning("Cache get failed for platform stats, computing: %s", e)
 
         logger.info("Calculating stats for platform=%s period=%s", platform, period_key)
         platform_stats = build_platform_stats(platform, period_key, days)
-        cache.set(cache_key, platform_stats, 300)
+        try:
+            cache.set(cache_key, platform_stats, 300)
+        except Exception as e:
+            logger.warning("Cache set failed for platform stats: %s", e)
         return Response(platform_stats)
