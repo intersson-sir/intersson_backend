@@ -28,6 +28,7 @@ class NegativeLink(models.Model):
         ('comment', 'Comment'),
         ('video', 'Video'),
         ('article', 'Article'),
+        ('account', 'Account'),
     ]
     
     STATUS_CHOICES = [
